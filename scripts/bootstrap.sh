@@ -120,17 +120,40 @@ if [[ "$vercel_link" =~ ^[yY]$ ]]; then
   fi
 fi
 
-# ---------- 4. Supabase-Migrations ----------
+# ---------- 4. Supabase-Migrations (nur lokal) ----------
+#
+# Dieser Schritt fasst ausschliesslich eine LOKALE Datenbank an.
+#
+# Die Promotion nach Produktion gehoert zu /deploy (Schritt 2b): dort laeuft
+# `supabase db push --dry-run`, das Ergebnis wird in Klartext uebersetzt, und
+# erst nach ausdruecklicher Freigabe wird geschrieben. Diese Absicherung hier
+# zu umgehen waere der teuerste Fehler, den ein Setup-Skript machen kann.
+#
+# Frueher stand hier `supabase link --project-ref <aus der URL geraten>` gefolgt
+# von `supabase db push`. Das schrieb ungeprueft in eine echte Datenbank — und
+# bei der Standard-Strategie `local` war die abgeleitete Project-Ref ohnehin
+# Unsinn, weil die URL dann http://127.0.0.1:54321 lautet.
 echo ""
-read -rp "Baseline-Migrations (profiles + rate_limit) jetzt anwenden? [y/N]: " run_migrations
-if [[ "$run_migrations" =~ ^[yY]$ ]]; then
-  if ! command -v supabase >/dev/null 2>&1; then
-    echo "ℹ️  Supabase-CLI nicht gefunden. Install: npm i -g supabase"
-  else
-    supabase link --project-ref "$(echo "$supa_url" | sed -E 's|https://([^.]+).*|\1|')"
-    supabase db push
-    echo "✅ Migrations angewendet"
+if [ -z "${supa_url:-}" ]; then
+  echo "ℹ️  Keine Supabase-URL angegeben — Migrations uebersprungen."
+elif [[ "$supa_url" =~ ^https?://(127\.0\.0\.1|localhost|\[::1\]) ]]; then
+  read -rp "Baseline-Migrations (profiles + rate_limit) lokal anwenden? [y/N]: " run_migrations
+  if [[ "$run_migrations" =~ ^[yY]$ ]]; then
+    if ! command -v supabase >/dev/null 2>&1; then
+      echo "ℹ️  Supabase-CLI nicht gefunden. Install: npm i -g supabase"
+    elif ! supabase status >/dev/null 2>&1; then
+      echo 'ℹ️  Lokaler Supabase-Stack laeuft nicht. Erst: supabase start'
+      echo '   danach: supabase migration up'
+    else
+      # `migration up` wendet nur Ausstehendes an. `db reset` waere die
+      # Alternative, loescht aber alle lokalen Daten — nicht als Default.
+      supabase migration up && echo "✅ Migrations lokal angewendet"
+    fi
   fi
+else
+  echo "ℹ️  Die angegebene Supabase-URL zeigt auf ein gehostetes Projekt."
+  echo "   Migrations werden hier NICHT angewendet — das macht /deploy mit"
+  echo "   Dry-Run und ausdruecklicher Freigabe, bevor Produktion angefasst wird."
 fi
 
 # ---------- 5. Kuma-Monitor ----------
