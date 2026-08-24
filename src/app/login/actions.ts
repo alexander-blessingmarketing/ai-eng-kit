@@ -14,9 +14,21 @@ export async function loginAction(
 ): Promise<LoginResult> {
   const h = await headers();
   const ip = getClientIp(h);
+  const konto = `email:${email.trim().toLowerCase()}`;
 
-  const allowed = await checkRateLimit(ip, "login");
-  if (!allowed) {
+  // Zwei Zähler, nicht einer. Nur pro IP zu limitieren laesst zwei Angriffe
+  // ungebremst durch:
+  //   - verteilter Angriff auf EIN Konto (Angreifer rotiert IPs)
+  //   - Credential Stuffing (ein haeufiges Passwort gegen VIELE Konten,
+  //     jeder Versuch ist der erste fuer diese Kombination)
+  // Beide Aufrufe muessen laufen, damit auch beide Zaehler hochgehen —
+  // deshalb kein `&&`, das den zweiten ueberspringen wuerde.
+  const [ipOk, kontoOk] = await Promise.all([
+    checkRateLimit(ip, "login"),
+    checkRateLimit(konto, "login"),
+  ]);
+
+  if (!ipOk || !kontoOk) {
     return {
       ok: false,
       rateLimited: true,
