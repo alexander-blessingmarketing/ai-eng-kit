@@ -4,10 +4,21 @@ import { useEffect, useState } from 'react'
 import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 
+/**
+ * Ohne PostHog-Key findet kein Tracking statt: `posthog.init()` in
+ * `src/instrumentation-client.ts` laeuft dann gar nicht erst.
+ *
+ * Der Banner darf sich in dem Fall nicht zeigen. Ein Einwilligungs-Banner ohne
+ * Anlass ist nicht bloss ueberfluessig — er behauptet eine Verarbeitung, die es
+ * nicht gibt, und holt eine Einwilligung fuer einen Dienst ein, der nicht laeuft.
+ */
+const TRACKING_AKTIV = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY)
+
 export function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    if (!TRACKING_AKTIV) return
     const consent = localStorage.getItem('cookie-consent')
     if (!consent) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only localStorage check after mount

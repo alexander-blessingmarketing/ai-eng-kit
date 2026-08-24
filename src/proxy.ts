@@ -16,6 +16,27 @@ function isPublic(pathname: string): boolean {
   );
 }
 
+/**
+ * Ist Supabase brauchbar konfiguriert — nicht nur "irgendein Wert gesetzt"?
+ *
+ * `.env.local.example` liefert Platzhalter (`dein-anon-key`,
+ * `https://kuma.example.com`). Wer die Datei kopiert und noch nicht ausgefuellt
+ * hat, hat gesetzte Variablen mit unbrauchbarem Inhalt. Eine reine
+ * Anwesenheitspruefung faellt darauf herein.
+ */
+function supabaseKonfiguriert(): { url: string; key: string } | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  try {
+    const { protocol } = new URL(url);
+    if (protocol !== "http:" && protocol !== "https:") return null;
+  } catch {
+    return null;
+  }
+  return { url, key };
+}
+
 /** Setzt die Per-Request-Header auf eine fertige Response. */
 function withSecurityHeaders(response: NextResponse, csp: string): NextResponse {
   response.headers.set("Content-Security-Policy", csp);
@@ -40,11 +61,31 @@ export async function proxy(request: NextRequest) {
     );
   }
 
+  // Ohne brauchbares Supabase kann niemand angemeldet sein. Vorher warf
+  // createServerClient hier ("Invalid supabaseUrl") und jede geschuetzte Route
+  // antwortete mit 500 — auch in einem Frontend-only-Projekt, das gar kein
+  // Supabase haben soll.
+  //
+  // Geprueft wird nicht blosse Anwesenheit, sondern Brauchbarkeit: Eine frisch
+  // aus .env.local.example kopierte Datei enthaelt Platzhalter. Die sind gesetzt
+  // und trotzdem kein gueltiger URL — genau der Fall, der hier krachte.
+  //
+  // Auf /login umleiten statt durchlassen: Das ist dasselbe Ergebnis wie "kein
+  // User" und damit die sichere Richtung. Ein Durchlassen waere fail-open — bei
+  // kaputter Env in Produktion waeren schlagartig alle Routen oeffentlich.
+  const supabaseConf = supabaseKonfiguriert();
+  if (!supabaseConf) {
+    return withSecurityHeaders(
+      NextResponse.redirect(new URL("/login", request.url)),
+      csp,
+    );
+  }
+
   let response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseConf.url,
+    supabaseConf.key,
     {
       cookies: {
         getAll() {

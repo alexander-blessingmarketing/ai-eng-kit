@@ -8,6 +8,49 @@ Bedienung und Rezepte stehen in der Skill `/observability`. Hier steht, **warum*
 
 ---
 
+## Brauchst du das überhaupt?
+
+**Analytics ist projektspezifisch.** Die Basis bringt PostHog mit, weil es für die meisten Produkte nützlich ist — aber ein internes Werkzeug, ein Prototyp oder eine Seite ohne Nutzerkonten braucht davon nichts.
+
+**Ohne `NEXT_PUBLIC_POSTHOG_KEY` passiert nichts.** Das ist der Schalter, und er wirkt an allen Stellen:
+
+| | ohne Key |
+|---|---|
+| `posthog.init()` | läuft gar nicht erst |
+| `getServerPostHog()` | gibt `null` zurück, alle Aufrufer prüfen das |
+| OTLP-Logs | Provider wird nicht gebaut, Pino schreibt nur nach stdout |
+| Cookie-Banner | wird nicht angezeigt |
+| `/ingest`-Rewrites | werden nicht registriert |
+
+Die letzten beiden Punkte sind wichtiger, als sie klingen. Ein **Einwilligungs-Banner ohne Anlass** behauptet eine Verarbeitung, die es nicht gibt, und holt eine Einwilligung für einen Dienst ein, der nicht läuft — rechtlich das Gegenteil von sauber. Und offene Reverse-Proxy-Routen auf eine fremde Domain, die niemand nutzt, sind unnötige Angriffsfläche.
+
+### Ganz entfernen
+
+Wer sicher weiß, dass kein Projekt-Feature Analytics braucht, kann den Ballast löschen:
+
+```
+src/instrumentation-client.ts          PostHog-Client-Init
+src/instrumentation.ts                 Hook (lädt -node.ts)
+src/instrumentation-node.ts            OTLP-Exporter
+src/lib/posthog-server.ts              Server-Singleton
+src/lib/tracked-mutations.ts           Event-Registry
+src/lib/otel-logs.ts                   Pino → OTel-Bridge
+src/components/posthog-*.tsx           Provider, Identify, Pageview
+src/components/cookie-consent.tsx      Consent-Banner
+src/hooks/use-posthog-identity.ts
+.claude/skills/observability/          Skill
+.claude/skills/posthog/                Skill
+docs/production/posthog-*.md
+```
+
+Dazu: die Einbindungen aus `src/app/layout.tsx`, den `rewrites()`-Block aus `next.config.ts`, `posthog-js` / `posthog-node` / `@opentelemetry/*` aus `package.json`.
+
+**Was dabei mitgeht:** `src/lib/logger.ts` und `src/lib/with-observability.ts` verlieren ihr Ziel. Pino schreibt dann nur noch nach stdout — das ist kein Verlust, sondern der Normalzustand ohne zentrale Log-Sammlung. `request-context.ts` und die Canonical Log Line bleiben nützlich.
+
+**Der einfachere Weg** ist meistens, den Key wegzulassen. Der Code kostet nichts, solange er nicht läuft, und die Entscheidung bleibt umkehrbar.
+
+---
+
 ## Überblick
 
 | Schicht | Datei | Aufgabe |
