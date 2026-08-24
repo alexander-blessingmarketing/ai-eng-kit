@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase-server";
+import { getLogger } from "@/lib/logger";
 
 type RateLimitAction = "login" | "invite";
 
@@ -28,7 +29,14 @@ export async function checkRateLimit(
   });
 
   if (error) {
-    console.error("rate-limit RPC failed:", error.message);
+    // Fail-open ist Absicht: Ein DB-Aussetzer soll nicht alle Logins
+    // blockieren. Der Preis ist, dass ein dauerhaft kaputtes Rate-Limit
+    // unsichtbar bleibt — deshalb ueber den Logger statt console.error.
+    // So landet es mit request_id in PostHog und faellt auf.
+    getLogger().error(
+      { err: { message: error.message, code: error.code }, action, fail_open: true },
+      "rate limit check failed — request allowed",
+    );
     return true;
   }
   return data === true;
