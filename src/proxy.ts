@@ -8,7 +8,25 @@ import {
 
 // Routes that don't require authentication.
 // Erweitern: füge Pfade hinzu, die public bleiben sollen (z. B. /signup, /landing).
-const publicRoutes = ["/", "/login", "/api/health"];
+const publicRoutes = [
+  "/",
+  "/login",
+  "/api/health",
+
+  // Dateien, die per Definition ohne Anmeldung erreichbar sein muessen.
+  //
+  // Der Matcher unten schliesst nur Bilder und /_next aus — eine .txt oder .xml
+  // laeuft also durch den Auth-Check. Ohne diese Eintraege lieferte
+  // /robots.txt eine Weiterleitung auf /login: Die Datei, die Crawlern sagt,
+  // was sie duerfen, war fuer Crawler unerreichbar.
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.webmanifest",
+
+  // Domain-Verifizierung, ACME-Challenges (Let's Encrypt), Apple Universal
+  // Links. isPublic() matcht auch Unterpfade, deckt also /.well-known/** ab.
+  "/.well-known",
+];
 
 function isPublic(pathname: string): boolean {
   return publicRoutes.some(
