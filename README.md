@@ -1,8 +1,16 @@
-# AI Engineering Kit
+# AI Engineering Kit — Blessing Marketing fork
+
+> **This is a modified fork, not the original.** The workflow, the skills and the rules are the work of **[Alex Sprogis](https://alexsprogis.de)** (see [Credits](#credits)). This repository adds an application layer on top: observability, uptime monitoring, authentication, rate limiting and CI/CD — plus a few deliberate deviations from the upstream conventions.
+>
+> Looking for the original? Run `npx create-ai-eng-app`.
+>
+> **What this fork adds** is listed under [Additions in this fork](#additions-in-this-fork). Everything else below is upstream documentation, kept as it was.
+
+---
 
 > A spec-driven workflow for [Claude Code](https://docs.anthropic.com/en/docs/claude-code): turn an idea into a production-ready web app, one feature at a time — Requirements → Architecture → Tasks → Build → QA → Deploy.
 
-This project was created with `npx create-ai-eng-app`. It ships a complete Next.js stack plus a set of Claude Code **Skills**, **Rules**, and **Sub-Agents** that drive each phase of the work. You steer; the skills do the heavy lifting and keep everything traceable.
+The base was created with `npx create-ai-eng-app`. It ships a complete Next.js stack plus a set of Claude Code **Skills**, **Rules**, and **Sub-Agents** that drive each phase of the work. You steer; the skills do the heavy lifting and keep everything traceable.
 
 **The AI Engineering Kit is the exclusive framework of the AI Engineering Accelerator** — Alex Sprogis' program that takes you from vibe-coder to AI engineer: shipping SaaS applications that are production-ready, secure, and good enough to sell.
 
@@ -55,6 +63,36 @@ Development runs in phases, each driven by a skill. Handoffs are always user-ini
 | Help | `/help` | Context-aware guide: shows where you are and what to do next |
 | Audit | `/audit` | Anytime drift check: confirms INDEX, specs, the AC→Task→Test chain, and code all still match |
 | Security Check | `/security-check` | Non-destructive check of the live app: HTTPS, security headers, protected routes, no exposed secrets, Supabase RLS |
+
+Added by this fork:
+
+| Skill | Command | What it does |
+|-------|---------|--------------|
+| Observability | `/observability` | Instrument events, wrap route handlers, write structured logs, verify they arrive in PostHog |
+| Uptime Monitor | `/monitor` | Register an Uptime Kuma HTTP monitor for `/api/health` over Socket.io |
+| PostHog Query | `/posthog` | Query the PostHog analytics API on demand (trends, insights, feature flags) |
+
+---
+
+## Additions in this fork
+
+The upstream kit ships the workflow and an empty application shell. This fork fills that shell in.
+
+| Area | What's here | Where |
+|------|-------------|-------|
+| **Observability** | PostHog client + server tracking, Zod-validated mutation registry, structured logs (Pino → OpenTelemetry → PostHog), request-scoped `request_id` via AsyncLocalStorage | `src/lib/`, `src/instrumentation*.ts` · [docs](docs/architektur/observability.md) |
+| **Authentication** | Supabase SSR clients, route protection via `src/proxy.ts`, login + password reset as Server Actions | `src/app/login/`, `src/lib/supabase-server.ts` |
+| **Rate limiting** | Postgres fixed-window counter, atomic, locked down with RLS | `supabase/migrations/002_rate_limit.sql` · [docs](docs/architektur/rate-limiting.md) |
+| **Monitoring** | Uptime Kuma registration over Socket.io, `/api/health` endpoint | `scripts/kuma-*.ts` |
+| **CI/CD** | GitHub Actions for lint/typecheck/test and Playwright against the Vercel preview, Dependabot | `.github/workflows/` |
+| **Performance** | Patterns measured in production — server region, image optimizer, prefetch strategy | [docs](docs/architektur/performance.md) |
+
+**Known weaknesses are documented, not hidden:** [`docs/BEKANNTE-SCHWAECHEN.md`](docs/BEKANNTE-SCHWAECHEN.md) lists what is deliberately still open — session recording without input masking, missing CSP, IP-only rate limiting, and more.
+
+### Deliberate deviations from upstream
+
+- **`/deploy` opens a pull request instead of merging into `main`.** The E2E workflow triggers only on `pull_request` and tests against the Vercel preview, so a direct merge would silently remove the one gate that catches regressions before production. Enforced locally by `.githooks/pre-push` (`git config core.hooksPath .githooks`). See `CLAUDE.md` → Key Conventions.
+- **`docs/decisions/` ships empty on purpose.** ADRs are project-scoped; a base has no situation to decide about. What the base brings along is explained as reference documentation under `docs/architektur/` instead — and your first ADR gets number `0001`.
 
 ---
 
@@ -152,17 +190,29 @@ Status flow: **Roadmap → Planned → Architected → Tasked → In Progress �
 ├── docs/
 │   ├── PRD.md                       Product Requirements Document
 │   ├── data-model.md                App-wide data model (entities + relationships)
-│   └── production/                  Production setup guides
+│   ├── production/                  Production setup guides
+│   ├── architektur/                 [fork] Why the shipped code looks the way it does
+│   ├── decisions/                   [fork] Your own ADRs — starts empty, first one is 0001
+│   └── BEKANNTE-SCHWAECHEN.md       [fork] Known, deliberate weaknesses
 ├── supabase/
 │   └── migrations/                  Schema changes as .sql files
+├── scripts/                        [fork] Bootstrap + Uptime Kuma registration
+├── .github/workflows/              [fork] CI, E2E against preview, deploy
+├── .githooks/                      [fork] pre-push — blocks direct pushes to main
 ├── tests/                          Playwright E2E tests (added by /e2e-tests)
 ├── src/
 │   ├── app/                        Pages (Next.js App Router)
+│   │   ├── login/                  [fork] Login + password reset (Server Actions)
+│   │   └── api/health/             [fork] Health endpoint for uptime monitoring
 │   ├── components/ui/              shadcn/ui components (never recreate these)
 │   ├── hooks/                      Custom React hooks
-│   └── lib/                        Utilities (supabase.ts, utils.ts)
+│   ├── lib/                        Utilities — [fork] logger, rate-limit, observability
+│   ├── instrumentation*.ts         [fork] PostHog + OpenTelemetry setup
+│   └── proxy.ts                    [fork] Route protection (Next 16 middleware)
 └── public/                         Static files
 ```
+
+Entries marked `[fork]` are additions of this fork; everything else comes from the upstream kit.
 
 ---
 
@@ -239,13 +289,15 @@ This is your project — adapt it freely:
 
 ---
 
-## Author
+## Credits
 
-Created by **Alex Sprogis** — AI Product Engineer & Content Creator.
+**The AI Engineering Kit was created by [Alex Sprogis](https://alexsprogis.de)** — AI Product Engineer & Content Creator. The workflow, the skills under `.claude/skills/`, the rules under `.claude/rules/` and the guides under `docs/production/` are his work and make up the larger part of this repository.
 
 - [YouTube](https://www.youtube.com/@alex.sprogis)
 - [Website](https://alexsprogis.de)
 
+**This fork** is maintained by Blessing Marketing and adds the application layer described under [Additions in this fork](#additions-in-this-fork). It is not affiliated with or endorsed by the original author — bugs you find here are ours until proven otherwise, and issues about the workflow itself belong upstream.
+
 ## License
 
-MIT License — free to use for your projects.
+MIT — see [LICENSE](LICENSE). The upstream kit is MIT-licensed as well; that notice is carried forward.
