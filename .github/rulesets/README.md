@@ -41,27 +41,32 @@ Die ID stammt aus der API (`gh api apps/github-actions`), nicht aus dem Gedächt
 
 ## Noch nicht enthalten: E2E
 
-`Playwright (gegen Vercel-Preview)` fehlt bewusst. Der Job endet aktuell **grün, wenn gar keine Preview existiert**:
+`Playwright (gegen Vercel-Preview)` fehlt — solange Vercel nicht angebunden ist, mit Absicht.
 
-```yaml
-- name: Wait for Vercel Preview
-  continue-on-error: true          # Fehler wird geschluckt
-- name: Run Playwright
-  if: steps.vercel-preview.outcome == 'success' && ...   # sonst übersprungen
-```
+`e2e.yml` kennt zwei Zustände, gesteuert über die Repository-Variable **`VERCEL_CONNECTED`** (Settings → Secrets and variables → Actions → Variables):
 
-Ohne verknüpfte Vercel-Integration läuft also kein einziger Test, und der Check meldet trotzdem Erfolg. Als Pflicht-Gate wäre das eine Lücke, die aussieht wie ein Schutz — genau das Muster, wegen dem die PR-Pflicht überhaupt eingeführt wurde (`CLAUDE.md` → Key Conventions).
+| `VERCEL_CONNECTED` | Verhalten | Als Required Check? |
+|---|---|---|
+| nicht gesetzt / ≠ `true` | Job überspringt alles, endet grün | **Nein** — würde Schutz vortäuschen |
+| `true` | Echtes Gate: keine Preview oder roter Test ⇒ Job scheitert | **Ja** |
 
-Der Skip selbst ist richtig, solange Vercel nicht angebunden ist. **Sobald es das ist:**
+Beobachtet am ersten PR (vor dem Umbau): Der Job lief 6–7 Minuten, lud 300 MB Playwright-Browser und führte **null** Tests aus — und meldete `success`. Genau das Muster, wegen dem die PR-Pflicht überhaupt eingeführt wurde (`CLAUDE.md` → Key Conventions).
 
-1. `e2e.yml` so ändern, dass eine fehlende Preview den Job **scheitern** lässt statt ihn durchzuwinken
-2. Diesen Eintrag in `required_status_checks` ergänzen und neu importieren:
+### Wenn Vercel angebunden wird
+
+1. Vercel mit dem Repo verknüpfen, einen PR öffnen, prüfen dass eine Preview entsteht
+2. Repository-Variable `VERCEL_CONNECTED` auf `true` setzen
+3. Einen PR öffnen und bestätigen, dass der Job **wirklich Tests ausführt** (Step „Run Playwright" darf nicht `skipped` sein)
+4. Erst dann diesen Eintrag in `required_status_checks` ergänzen und neu importieren:
 
 ```json
 {
-  "context": "Playwright (gegen Vercel-Preview)"
+  "context": "Playwright (gegen Vercel-Preview)",
+  "integration_id": 15368
 }
 ```
+
+Schritt 3 ist nicht optional. Ein Required Check, der überspringt, ist genau die Lücke, die dieser Umbau beseitigen sollte.
 
 ## Status-Check-Namen
 
