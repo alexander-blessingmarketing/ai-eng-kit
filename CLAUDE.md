@@ -1,4 +1,4 @@
-# AI-KIT-MERGE
+# AI Engineering Kit
 
 > Built with the AI Engineering Kit — a spec-driven workflow for Claude Code.
 

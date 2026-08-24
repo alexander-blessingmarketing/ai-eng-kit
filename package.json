@@ -1,5 +1,5 @@
 {
-  "name": "ai-kit-merge",
+  "name": "ai-eng-kit",
   "version": "0.1.0",
   "description": "Built with the AI Engineering Kit — a spec-driven Claude Code workflow on Next.js + Supabase",
   "private": true,
