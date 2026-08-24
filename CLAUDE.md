@@ -54,6 +54,20 @@ docs/
 ## Key Conventions
 
 - **Working language: Deutsch.** Talk to the user in Deutsch and write every project document in Deutsch — see `.claude/rules/general.md` → Working Language.
+- **⚠️ Einmalig pro neuem Projekt: Branch-Schutz aktivieren.**
+  `/verify-setup` ist eine managed Skill des Kits und kennt diese Fork-Ergänzung nicht. Sie meldet „bereit", ohne dass `main` geschützt ist — **wer sich darauf verlässt, arbeitet ungeschützt weiter.**
+
+  Die Git-Hooks erledigt `npm install` selbst (`scripts/postinstall.mjs`). Offen bleibt das serverseitige Ruleset, weil es einen gepushten `main` und ein angemeldetes `gh` braucht:
+
+  ```bash
+  git push -u origin main          # muss VOR dem Ruleset passieren
+  bash scripts/setup-ruleset.sh    # importiert .github/rulesets/main.json
+  ```
+
+  **Reihenfolge ist Pflicht:** Das Ruleset verlangt einen PR für jede Änderung an `main` — auch für den ersten Push, der `main` erst anlegt. Umgekehrt sperrt man sich aus. Das Skript prüft das selbst und überspringt sich, solange `main` fehlt.
+
+  **Wenn der Nutzer nach `/verify-setup` oder `/init` fragt, wie es weitergeht: diesen Schritt aktiv nennen, falls er noch aussteht.** Prüfen mit:
+  `gh api repos/{owner}/{repo}/rulesets --jq 'length'` — `0` heißt ungeschützt.
 - **Feature IDs:** PROJ-1, PROJ-2, etc. (sequential)
 - **Commits:** `feat(PROJ-X): description`, `fix(PROJ-X): description`
 - **Single Responsibility:** One feature per folder

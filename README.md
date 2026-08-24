@@ -18,6 +18,18 @@ The base was created with `npx create-ai-eng-app`. It ships a complete Next.js s
 
 ## Quick Start
 
+> **Starting from this fork?** Two things the upstream Quick Start doesn't cover, because they're additions of this fork:
+>
+> ```bash
+> npm install                      # activates the git hooks via postinstall
+> git push -u origin main          # must happen BEFORE the ruleset
+> bash scripts/setup-ruleset.sh    # protects main server-side
+> ```
+>
+> The order matters: the ruleset requires a pull request for every change to `main` — including the very first push that creates it. The script checks this itself and skips while `main` is missing.
+>
+> `/verify-setup` does **not** cover the ruleset — it's a managed skill of the upstream kit and doesn't know about it. It will report "ready" with `main` unprotected. See `CLAUDE.md` → Key Conventions.
+
 The scaffolder already ran `npm install` and a setup check. Open this project in the coding agent you installed it for — `.ai-eng-kit` → `agents` says which — and:
 
 ```
