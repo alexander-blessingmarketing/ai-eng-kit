@@ -10,16 +10,6 @@
 
 `src/hooks/use-posthog-identity.ts` — beabsichtigt und normal, gehört aber ins Verarbeitungsverzeichnis. `/dsgvo` legt dafür `docs/privacy.md` an.
 
-## Sicherheit
-
-### Keine CSP, keine Permissions-Policy
-
-`next.config.ts` setzt vier Header: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Strict-Transport-Security`. Es fehlen `Content-Security-Policy` und `Permissions-Policy`.
-
-`docs/production/security-headers.md` liefert eine fertige Nonce-basierte CSP — mit der wichtigen Warnung, **niemals** `script-src 'self' 'unsafe-inline'` auszuliefern. Anpassung nötig: Das Beispiel liegt dort in `middleware.ts`, unter Next 16 heißt die Datei `src/proxy.ts`.
-
-`/security-check` prüft beide Header gegen die Live-Seite und wird sie melden.
-
 ## Betrieb
 
 ### Plattform-Kopplung an Vercel
@@ -95,3 +85,4 @@ Der Vollständigkeit halber, damit niemand doppelt sucht:
 | Rate-Limit zählte nur pro IP | Zusätzlicher Zähler pro Konto (`email:<adresse>`) — deckt verteilte Angriffe und Credential Stuffing ab |
 | Fail-open im Rate-Limit war unsichtbar | `getLogger().error` statt `console.error` — landet mit `request_id` in PostHog |
 | Health-Endpoint gab DB-Fehlermeldungen nach außen | Meldung nur noch ins Log, nach außen bloß der Statuscode |
+| Keine CSP, keine Permissions-Policy | Beide gesetzt in `src/lib/security-headers.ts`, angewendet von `src/proxy.ts`. Im Browser verifiziert: 0 Verstöße auf `/` und `/login` |
