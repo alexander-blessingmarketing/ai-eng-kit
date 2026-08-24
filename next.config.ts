@@ -60,7 +60,13 @@ const nextConfig: NextConfig = {
   },
 
   // PostHog Reverse-Proxy (umgeht Adblocker, EU-Cloud).
+  //
+  // Nur wenn PostHog ueberhaupt konfiguriert ist. Ohne Key initialisiert der
+  // Client nicht, und die drei Routen wuerden ins Leere zeigen: offene Proxys
+  // auf eine fremde Domain, die niemand nutzt. Weg damit, statt sie
+  // mitzuschleppen.
   async rewrites() {
+    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return [];
     return [
       {
         source: "/ingest/static/:path*",

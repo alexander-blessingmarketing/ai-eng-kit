@@ -85,4 +85,7 @@ Der Vollständigkeit halber, damit niemand doppelt sucht:
 | Rate-Limit zählte nur pro IP | Zusätzlicher Zähler pro Konto (`email:<adresse>`) — deckt verteilte Angriffe und Credential Stuffing ab |
 | Fail-open im Rate-Limit war unsichtbar | `getLogger().error` statt `console.error` — landet mit `request_id` in PostHog |
 | Health-Endpoint gab DB-Fehlermeldungen nach außen | Meldung nur noch ins Log, nach außen bloß der Statuscode |
+| Keine CSP, keine Permissions-Policy | Beide gesetzt, im Browser mit 0 Verstößen verifiziert |
+| Cookie-Banner zeigte sich ohne aktives Tracking | Rendert nur mit gesetztem PostHog-Key |
+| Geschützte Routen warfen 500 ohne konfiguriertes Supabase | Leiten auf `/login` um; geprüft wird Brauchbarkeit, nicht bloße Anwesenheit |
 | Keine CSP, keine Permissions-Policy | Beide gesetzt in `src/lib/security-headers.ts`, angewendet von `src/proxy.ts`. Im Browser verifiziert: 0 Verstöße auf `/` und `/login` |
