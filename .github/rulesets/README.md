@@ -33,7 +33,11 @@ Schritt 2 ist nicht optional: GitHub kennt einen Status-Check-Namen erst, wenn e
 
 **`bypass_actors: []`** — niemand umgeht die Regeln, auch Admins nicht. Kein Risiko, sich auszusperren: Wenn CI einmal hängt, lässt sich das Ruleset in den Settings in Sekunden auf `evaluate` oder `disabled` stellen.
 
-**Kein `integration_id` beim Status-Check** — der Check wird allein über den Namen zugeordnet. Ausreichend, solange nur GitHub Actions Checks meldet.
+**`integration_id: 15368` beim Status-Check** — bindet den Check an GitHub Actions als Quelle. Ohne diese Bindung zählt allein der Name: Jede App mit Schreibrecht auf die Checks-API könnte einen Check namens `Lint + Typecheck + Test` als erfolgreich melden und das Gate erfüllen, ohne dass ein Test lief. Bei einem öffentlichen Repo ist das kein theoretisches Risiko.
+
+Die ID stammt aus der API (`gh api apps/github-actions`), nicht aus dem Gedächtnis. Wer den Check je von einer anderen Quelle melden lässt, muss sie anpassen.
+
+**Beide Ziele in `ref_name.include`** — `~DEFAULT_BRANCH` **und** `refs/heads/main`. Der Platzhalter allein wandert mit: Wird der Default-Branch je auf einen anderen umgestellt, verliert `main` seinen Schutz, ohne dass jemand etwas ändert. Mit beiden Einträgen bleibt `main` geschützt, egal was Default ist. Solange `main` der Default ist, matchen beide dieselbe Branch — harmlos.
 
 ## Noch nicht enthalten: E2E
 

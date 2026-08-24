@@ -4,7 +4,7 @@
   "enforcement": "active",
   "conditions": {
     "ref_name": {
-      "include": ["~DEFAULT_BRANCH"],
+      "include": ["~DEFAULT_BRANCH", "refs/heads/main"],
       "exclude": []
     }
   },
@@ -35,7 +35,8 @@
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           {
-            "context": "Lint + Typecheck + Test"
+            "context": "Lint + Typecheck + Test",
+            "integration_id": 15368
           }
         ]
       }
