@@ -93,6 +93,13 @@ EOF
   echo "✅ .env.local geschrieben"
 fi
 
+# ---------- 2b. Git-Hooks ----------
+echo ""
+# Verhindert versehentliche Pushes auf main. Serverseitige Branch Protection
+# braucht bei privaten Repos GitHub Pro — dieser Hook ist der Ersatz.
+git config core.hooksPath .githooks
+echo "✓ Git-Hooks aktiv (.githooks) — Pushes auf main werden blockiert."
+
 # ---------- 3. Vercel-Linking ----------
 echo ""
 read -rp "Mit Vercel-Projekt verknüpfen jetzt? [y/N]: " vercel_link

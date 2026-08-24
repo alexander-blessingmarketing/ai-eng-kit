@@ -57,7 +57,25 @@ docs/
 - **Feature IDs:** PROJ-1, PROJ-2, etc. (sequential)
 - **Commits:** `feat(PROJ-X): description`, `fix(PROJ-X): description`
 - **Single Responsibility:** One feature per folder
-- **Feature branches:** you create a branch `feat/PROJ-X-name` before `/build`; work stays there through build/QA/E2E, and `/deploy` merges it into `main` to go live. `main` always stays deployable.
+- **Feature branches:** you create a branch `feat/PROJ-X-name` before `/build`; work stays there through build/QA/E2E. `main` always stays deployable.
+- **⚠️ Nichts geht direkt nach `main` — `/deploy` merged NICHT selbst, sondern öffnet einen Pull Request.**
+  Das weicht bewusst von der Skill `/deploy` (Schritt 3) und von `.claude/rules/general.md` ab, die beide einen direkten Merge beschreiben. **Diese Konvention hier gewinnt.** Beide Dateien sind managed und werden von `create-ai-eng-app update` überschrieben — nach jedem Update gegenprüfen, ob diese Zeile noch greift.
+
+  Ablauf: `/deploy` führt seine Vorabprüfungen und die DB-Promotion wie beschrieben aus, öffnet dann statt des Merges einen PR gegen `main` und **wartet**. Nach grüner CI merged der Mensch, danach macht `/deploy` mit Verifikation und Bookkeeping weiter.
+
+  **Grund:** `.github/workflows/e2e.yml` triggert ausschließlich auf `pull_request`. Es wartet auf die Vercel-Preview und testet gegen diese — also gegen ein echtes Deployment, bevor es live geht. Ohne PR läuft dieser Workflow **nie**, ohne Fehlermeldung und ohne roten Haken. Ein direkter Merge würde die einzige Stelle entfernen, an der eine Regression vor Produktion auffällt. (`ci.yml` läuft auf PR *und* Push, ist also nicht betroffen.)
+
+  **Durchgesetzt wird das lokal, nicht auf GitHub.** Branch Protection und Rulesets brauchen bei privaten Repos GitHub Pro — im Free-Plan liefert die API dafür `403`. Ersatz ist der versionierte Hook `.githooks/pre-push`, der Pushes auf `main` ablehnt.
+
+  Einmalig pro Klon zu aktivieren (`scripts/bootstrap.sh` erledigt das mit):
+
+  ```bash
+  git config core.hooksPath .githooks
+  ```
+
+  Notausgang, wenn es wirklich sein muss: `ALLOW_MAIN_PUSH=1 git push origin main`.
+
+  Der Hook ist schwächer als serverseitiger Schutz — er wirkt nur auf Rechnern, die ihn aktiviert haben. Er fängt aber den Fall, um den es geht: den versehentlichen Push. Sobald das Repo öffentlich wird oder ein Pro-Plan existiert, gehört zusätzlich echte Branch Protection auf `main`.
 - **shadcn/ui first:** NEVER create custom versions of installed shadcn components
 - **App shell:** navigation, layout regions, and the page pattern live in `docs/app-shell.md` and belong to the feature recorded there. Reuse those components — never add a second sidebar, header, or nav inside a feature. Changing how the shell behaves is a `/refine` on its owning feature.
 - **Parallel build:** `/build` runs file-disjoint [P] tasks from `tasks.md` as isolated subagents
