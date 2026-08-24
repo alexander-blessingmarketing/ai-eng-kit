@@ -32,6 +32,10 @@ yarn-error.log*
 !.env.example
 !.env.local.example
 
+# supabase cli — lokaler Link-Status, Branch-Metadaten, Pooler-URLs
+supabase/.temp/
+supabase/.branches/
+
 # vercel
 .vercel
 
