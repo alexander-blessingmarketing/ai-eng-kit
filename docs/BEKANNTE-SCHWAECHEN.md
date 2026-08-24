@@ -73,6 +73,51 @@ Fünf Stellen lesen `NEXT_PUBLIC_VERCEL_ENV` bzw. `NEXT_PUBLIC_VERCEL_GIT_COMMIT
 
 `@posthog/nextjs-config` ist nicht installiert, der Aufruf in `next.config.ts` steht als Kommentar. Ohne Aktivierung bleiben Stack-Traces in PostHog minifiziert. Anleitung: `docs/production/posthog-sourcemaps.md`.
 
+## Abhängigkeiten
+
+`npm audit` meldet **6 Schwachstellen: 3 hoch, 3 moderat** (Stand 2026-08-24). Beide Gruppen gehen auf je eine Ursache zurück, und beide sind nach Prüfung **nicht erreichbar** — aber nicht ignoriert, sondern begründet zurückgestellt.
+
+### 3× HIGH — ReDoS in `path-to-regexp`
+
+```
+@vercel/config → @vercel/routing-utils → path-to-regexp
+```
+
+*„path-to-regexp outputs backtracking regular expressions"* — ein Denial-of-Service über präparierte Routen-Pattern.
+
+**Warum hier nicht erreichbar:** `@vercel/config` ist eine **devDependency** und wird an genau einer Stelle verwendet:
+
+```ts
+// vercel.ts
+import type { VercelConfig } from "@vercel/config/v1";
+```
+
+Ein `import type` wird beim Kompilieren restlos entfernt. Das Paket landet weder im Bundle noch zur Laufzeit im Prozess — es liefert ausschließlich Typinformation.
+
+**Warum nicht gefixt:** `npm audit fix` schlägt `@vercel/config@0.0.32` vor. Das ist ein Rückschritt von `^0.2.1` auf eine ältere Hauptversion, für ein Paket, dessen Code nie ausgeführt wird. Der Downgrade kostet mehr, als er bringt.
+
+### 3× MODERATE — unbegrenzte Speicherzuweisung in `@opentelemetry/core`
+
+```
+@opentelemetry/sdk-logs → @opentelemetry/resources → @opentelemetry/core
+```
+
+[GHSA-8988-4f7v-96qf](https://github.com/advisories/GHSA-8988-4f7v-96qf) — *unbounded memory allocation in W3C Baggage propagation*.
+
+**Diese Gruppe verdient mehr Aufmerksamkeit als die erste:** `@opentelemetry/sdk-logs` ist eine **Runtime-Abhängigkeit** und läuft in Production tatsächlich (`src/instrumentation-node.ts`).
+
+**Warum trotzdem nicht erreichbar:** Die Lücke sitzt in der **Baggage-Propagation** — dem Auslesen von `baggage`-Headern eingehender Requests. Dieses Projekt nutzt davon nichts: Verwendet werden `LoggerProvider`, `SimpleLogRecordProcessor`, `resourceFromAttributes` und die Severity-Typen. Es gibt keinen Propagator, keine Context-Extraktion aus Headern, kein Baggage.
+
+**Warum nicht gefixt:** Der Vorschlag ist `@opentelemetry/sdk-logs@0.221.0`, ein Major-Sprung von `^0.216.0`. Der Custom-OTLP-Exporter implementiert `LogRecordExporter` direkt gegen die SDK-Schnittstelle — ein Major-Wechsel kann sie ändern. Lohnt sich als bewusster Schritt mit Test, nicht als blindes `audit fix`.
+
+### Wann das neu zu bewerten ist
+
+- Sobald ein Feature **Trace-Context oder Baggage aus eingehenden Headern** liest → die moderate Gruppe wird sofort relevant
+- Sobald `@vercel/config` von `import type` auf einen echten Wert-Import wechselt
+- Bei jedem Major-Update von `@opentelemetry/*` ohnehin
+
+Dependabot ist aktiv (`.github/dependabot.yml`) und wird die Updates von sich aus vorschlagen.
+
 ## Was bereits behoben ist
 
 Der Vollständigkeit halber, damit niemand doppelt sucht:
