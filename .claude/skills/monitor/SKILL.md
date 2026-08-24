@@ -23,9 +23,9 @@ Uptime Kuma hat **keine REST-API** für Monitor-Anlage. Stattdessen Socket.io mi
 
 Implementierung in [`scripts/kuma-register.ts`](../../../scripts/kuma-register.ts) + [`scripts/lib/kuma-client.ts`](../../../scripts/lib/kuma-client.ts).
 
-**Notification-Channels:** `KUMA_NOTIFICATION_NAMES` (komma-separiert) wird beim Anlegen automatisch via Name aufgelöst und verknüpft. Default: `Intranet` (E-Mail/Slack/Webhook im Blessing-Kuma).
+**Notification-Channels:** `KUMA_NOTIFICATION_NAMES` (komma-separiert) wird beim Anlegen automatisch via Name aufgelöst und verknüpft. Der Name muss einem in Kuma angelegten Notification-Channel entsprechen (E-Mail/Slack/Webhook).
 
-**Status-Page-Auto-Grouping:** `KUMA_STATUS_PAGE_SLUG` + `KUMA_STATUS_PAGE_GROUP` (default: Projekt-Name) sorgen dafür, dass jeder neue Monitor automatisch in der Status-Page (z. B. `<kuma>/status/intranet`) unter einer Gruppe pro Projekt erscheint. Die Status-Übersicht im Intranet pullt diese Page.
+**Status-Page-Auto-Grouping:** `KUMA_STATUS_PAGE_SLUG` + `KUMA_STATUS_PAGE_GROUP` (default: Projekt-Name) sorgen dafür, dass jeder neue Monitor automatisch in der Status-Page (z. B. `<kuma>/status/<slug>`) unter einer Gruppe pro Projekt erscheint.
 
 **Wire-Format-Eigenheiten** (aus Reverse-Engineering — uptime-kuma-api-Python-Lib als Referenz):
 - `imgDataUrl` muss leerer String `''` sein, nicht `null` (sonst Server-Crash auf `.startsWith()`).

@@ -1,7 +1,7 @@
 # Performance-Patterns
 
-> Best-Practices aus produktiver Erfahrung — extrahiert aus dem Blessing-Intranet
-> (PROJ-26 bis PROJ-40). Quellen: ADRs `0020`, `0021`, `0031`, `0032` im Intranet-Repo.
+> Best-Practices aus produktiver Erfahrung — extrahiert aus einem internen
+> Vorgaengerprojekt und dort gemessen.
 
 ## Was im Starter-Kit bereits aktiv ist
 
@@ -11,7 +11,7 @@
 Alle Vercel-Functions laufen in Frankfurt, co-located mit Supabase eu-central-1.
 Der transatlantische Roundtrip auf jeder Server-Component-Query entfällt.
 
-**Impact (gemessen im Intranet, 2026-04-30):** TTFB cold P50 −66 % bis −78 %
+**Impact (produktiv gemessen, 2026-04-30):** TTFB cold P50 −66 % bis −78 %
 auf allen Server-rendered Routes (Home: 2030 → 572 ms, Bereich: 1441 → 447 ms).
 
 **Wenn dein Stack nicht in der EU liegt:** Region in `vercel.ts` anpassen — Liste:
@@ -24,7 +24,7 @@ automatisch den Hostname aus `NEXT_PUBLIC_SUPABASE_URL`.
 Sobald du `<Image src={supabaseStorageUrl} />` benutzt (ohne `unoptimized`), liefert
 der Vercel-Image-Optimizer AVIF/WebP, srcset, Edge-CDN-Cache.
 
-**Impact (gemessen im Intranet):** LCP Home Desktop warm 6168 → 884 ms (−86 %),
+**Impact (produktiv gemessen):** LCP Home Desktop warm 6168 → 884 ms (−86 %),
 Bandbreite pro Card 64 KB → 9 KB (~7× kleiner).
 
 **Restriktiv per Default:** Nur der konkrete Supabase-Project-Hostname + Public-Storage-Pfad
@@ -61,7 +61,7 @@ mit 22 Links = 22 zusätzliche RSC-Function-Invocations pro Cold-Load — pro Us
 <Link href="/admin/users" prefetch={false}>Users</Link>
 ```
 
-**Impact (Intranet):** RSC-Prefetches pro Cold-Load 22-44 → 0. Sekundär: Browser-CPU-Entlastung
+**Impact (produktiv gemessen):** RSC-Prefetches pro Cold-Load 22-44 → 0. Sekundär: Browser-CPU-Entlastung
 beim RSC-Parsing (FCP −100 bis −300 ms).
 
 **Was Du behältst:** Klick-Navigation funktioniert weiter — `prefetch={false}` deaktiviert nur

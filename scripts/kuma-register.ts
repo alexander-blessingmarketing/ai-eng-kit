@@ -30,7 +30,7 @@ async function main(): Promise<void> {
   const monitorName = process.env.KUMA_MONITOR_NAME ?? `${projectName} — Health`
   const interval = Number(process.env.KUMA_MONITOR_INTERVAL ?? 60)
   const healthUrl = `${appUrl}/api/health`
-  // Komma-separierte Notification-Channel-Namen aus Kuma — z. B. "Intranet"
+  // Komma-separierte Notification-Channel-Namen, wie in Kuma angelegt
   const notificationNames = (process.env.KUMA_NOTIFICATION_NAMES ?? '')
     .split(',')
     .map((s) => s.trim())

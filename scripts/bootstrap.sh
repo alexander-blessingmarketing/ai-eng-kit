@@ -62,10 +62,10 @@ if [ -z "${SKIP_ENV:-}" ]; then
     read -rp "KUMA_USERNAME: " KUMA_USER
     read -rsp "KUMA_PASSWORD: " KUMA_PW
     echo ""
-    read -rp "KUMA_NOTIFICATION_NAMES (Komma-Liste) [Intranet]: " KUMA_NOTIFY
-    KUMA_NOTIFY="${KUMA_NOTIFY:-Intranet}"
-    read -rp "KUMA_STATUS_PAGE_SLUG (Status-Page für automatische Gruppierung) [intranet]: " KUMA_PAGE_SLUG
-    KUMA_PAGE_SLUG="${KUMA_PAGE_SLUG:-intranet}"
+    read -rp "KUMA_NOTIFICATION_NAMES (Komma-Liste, wie in Kuma angelegt): " KUMA_NOTIFY
+    KUMA_NOTIFY="${KUMA_NOTIFY:-}"
+    read -rp "KUMA_STATUS_PAGE_SLUG (Status-Page fuer automatische Gruppierung): " KUMA_PAGE_SLUG
+    KUMA_PAGE_SLUG="${KUMA_PAGE_SLUG:-}"
     read -rp "KUMA_STATUS_PAGE_GROUP (Gruppen-Name) [$project_name]: " KUMA_PAGE_GROUP
     KUMA_PAGE_GROUP="${KUMA_PAGE_GROUP:-$project_name}"
   fi

@@ -2,7 +2,7 @@
 
 > **Referenzdokumentation, kein ADR.** Dieses Dokument erklärt Code, den die Basis mitbringt — nicht eine Entscheidung, die *dein* Projekt getroffen hat. Eigene Entscheidungen gehören nach `docs/decisions/` (ab `0001`) bzw. in das `design.md` des jeweiligen Features.
 >
-> Ursprung: portiert aus dem Blessing-Intranet (PROJ-33/34). Die Begründungen sind erhalten, weil sie erklären, warum der Code so aussieht — die Entscheidungen selbst fielen dort, nicht hier.
+> Ursprung: portiert aus einem produktiven Vorgängerprojekt. Die Begründungen sind erhalten, weil sie erklären, warum der Code so aussieht — die Entscheidungen selbst fielen dort, nicht hier.
 
 Bedienung und Rezepte stehen in der Skill `/observability`. Hier steht, **warum** es so gebaut ist.
 

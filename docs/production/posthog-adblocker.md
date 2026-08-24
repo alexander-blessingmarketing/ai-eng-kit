@@ -1,6 +1,6 @@
 # PostHog & Adblocker
 
-> Status: **verifiziert** (Audit ClickUp #86c94fy7z, Abschnitt 4 "CI/CD & Source-Maps" — Punkt "Adblocker-Test dokumentiert").
+> Status: **verifiziert** in einem produktiven Projekt (interne Audit-Notiz, Abschnitt "CI/CD & Source-Maps").
 
 ## Beobachtung
 
