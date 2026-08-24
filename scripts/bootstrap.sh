@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Interaktives Setup nach `git clone` + `npm install`.
-# Schreibt .env.local, linkt Vercel + Supabase, registriert Kuma-Monitor.
+# Schreibt .env.local, aktiviert Git-Hooks + Branch-Schutz, linkt Vercel +
+# Supabase, registriert Kuma-Monitor.
 
 set -euo pipefail
 
@@ -8,7 +9,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="$ROOT/.env.local"
 
 echo ""
-echo "🛠️  AI Coding Starter Kit — Bootstrap"
+echo "🛠️  AI Engineering Kit — Bootstrap"
 echo ""
 
 # ---------- 1. Projektname ----------
@@ -95,10 +96,16 @@ fi
 
 # ---------- 2b. Git-Hooks ----------
 echo ""
-# Verhindert versehentliche Pushes auf main. Serverseitige Branch Protection
-# braucht bei privaten Repos GitHub Pro — dieser Hook ist der Ersatz.
+# Faengt versehentliche Pushes auf main ab, bevor sie das Netz erreichen.
+# Wirkt nur auf diesem Rechner — das serverseitige Gegenstueck kommt in 2c.
 git config core.hooksPath .githooks
 echo "✓ Git-Hooks aktiv (.githooks) — Pushes auf main werden blockiert."
+
+# ---------- 2c. Branch-Schutz auf GitHub ----------
+# Importiert .github/rulesets/main.json. Eigenes Skript, weil es auch einzeln
+# gebraucht wird: Beim ersten Durchlauf existiert 'main' auf dem Remote oft noch
+# nicht, dann ueberspringt es sich selbst und sagt, wann es nachzuholen ist.
+bash "$ROOT/scripts/setup-ruleset.sh" || true
 
 # ---------- 3. Vercel-Linking ----------
 echo ""
