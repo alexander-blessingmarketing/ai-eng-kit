@@ -14,7 +14,17 @@ Schritt 2 ist nicht optional: GitHub kennt einen Status-Check-Namen erst, wenn e
 
 ## Import
 
-**Settings → Rules → Rulesets → New ruleset → Import a ruleset**, dann `main.json` hochladen.
+**Automatisch — der Normalfall.** `scripts/bootstrap.sh` ruft in Schritt 2c das Skript auf, das den Import erledigt. Auch einzeln aufrufbar:
+
+```bash
+bash scripts/setup-ruleset.sh
+```
+
+Das Skript ist idempotent und bricht nichts ab. Es überspringt sich selbst mit einer Begründung, wenn `gh` fehlt oder nicht angemeldet ist, kein GitHub-Remote existiert, `main` noch nicht gepusht wurde, oder Rulesets für das Repo nicht verfügbar sind (privat ohne Pro → `403`).
+
+Die Reihenfolge aus dem vorigen Abschnitt erzwingt es selbst: Solange `main` nicht auf dem Remote liegt, importiert es nichts und sagt, wann es nachzuholen ist. Beim ersten Bootstrap-Durchlauf ist das der Normalfall — danach einmal von Hand nachziehen.
+
+**Manuell**, falls das Skript nicht greift: **Settings → Rules → Rulesets → New ruleset → Import a ruleset**, dann `main.json` hochladen.
 
 ## Was drinsteht
 
