@@ -88,6 +88,20 @@ docs/
   *Ohne frühen PR läuft keine CI.* Lint, Typecheck, Tests und E2E hängen am Pull Request. Öffnet ihn erst `/deploy`, kommt die erste Rückmeldung nach Stunden Arbeit — gebündelt, am Ende, wenn Korrigieren am teuersten ist. Und bis dahin liegt alles nur auf einem Rechner.
 
   **Wenn `gh` fehlt oder nicht angemeldet ist:** Branch trotzdem anlegen, den Push und den PR in Klartext an den Nutzer übergeben, mit dem fertigen Befehl. Nicht stillschweigend überspringen — sonst fehlt die CI, ohne dass es jemand merkt.
+- **⚠️ Der erste Deploy wartet, bis die App etwas kann.**
+  Nach bestandener QA bieten `/qa` und `/help` nur zwei Wege an: `/e2e-tests` oder `/deploy`. **„Weiter mit dem nächsten Feature" nennen beide nicht** — die Option ist damit praktisch unsichtbar, obwohl `general.md` sagt, Übergaben seien immer nutzerinitiiert.
+
+  **Deshalb nennt der Agent nach jeder QA alle drei Möglichkeiten**, mit einer Empfehlung dazu:
+  - `/e2e-tests` — bei kritischen Journeys
+  - **`/write-spec` für das nächste Feature** — solange die App noch nichts kann, das ein Nutzer benutzen würde
+  - `/deploy` — wenn sie das kann
+
+  **Faustregel für den ersten Deploy:** Auth **plus** die erste echte Fachfunktion. Nicht nach Auth allein.
+
+  **Warum nicht früher:** Der erste Deploy legt ein gehostetes Supabase-Projekt an — mit der Region, die sich **nie mehr ändern lässt** — eine echte Datenbank mit echter Auth und damit eine DSGVO-Fläche. Für ein Login, hinter dem nichts ist, ist das verfrüht; der lokale Docker-Stack deckt die Entwicklung vollständig ab.
+
+  **Warum nicht später:** Der erste Deploy ist die Stelle, an der Infrastrukturprobleme auffallen — fehlende Env-Variablen, Unterschiede zwischen lokalem und Produktions-Build, die Migrations-Promotion. Wer bis zum fertigen MVP wartet, findet sie mit fünf Features gleichzeitig im Gepäck statt mit einem.
+
 - **⚠️ Nichts geht direkt nach `main` — `/deploy` merged NICHT selbst, sondern übergibt an den Pull Request.**
   Das weicht bewusst von der Skill `/deploy` (Schritt 3) und von `.claude/rules/general.md` ab, die beide einen direkten Merge beschreiben. **Diese Konvention hier gewinnt.** Beide Dateien sind managed und werden von `create-ai-eng-app update` überschrieben — nach jedem Update gegenprüfen, ob diese Zeile noch greift.
 
