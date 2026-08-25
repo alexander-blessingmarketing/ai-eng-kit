@@ -103,7 +103,8 @@ The upstream kit ships the workflow and an empty application shell. This fork fi
 
 ### Deliberate deviations from upstream
 
-- **`/deploy` opens a pull request instead of merging into `main`.** The E2E workflow triggers only on `pull_request` and tests against the Vercel preview, so a direct merge would silently remove the one gate that catches regressions before production. Enforced locally by `.githooks/pre-push` (`git config core.hooksPath .githooks`). See `CLAUDE.md` → Key Conventions.
+- **The agent creates the feature branch and opens a draft PR — at the start of the feature, not before `/build`.** Upstream leaves both to the user and only branches before `/build`. Two reasons: `/write-spec`, `/architecture` and `/tasks` all commit *before* that point, so their commits would land on `main` where they can never be pushed; and without a PR nothing runs CI, so the first feedback would arrive hours later, bundled, at the most expensive moment to fix it.
+- **`/deploy` hands over to that pull request instead of merging into `main`.** The E2E workflow triggers only on `pull_request` and tests against the Vercel preview, so a direct merge would silently remove the one gate that catches regressions before production. Enforced locally by `.githooks/pre-push` (activated automatically by `npm install`). See `CLAUDE.md` → Key Conventions.
 - **`docs/decisions/` ships empty on purpose.** ADRs are project-scoped; a base has no situation to decide about. What the base brings along is explained as reference documentation under `docs/architektur/` instead — and your first ADR gets number `0001`.
 
 ---
