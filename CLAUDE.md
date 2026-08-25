@@ -71,11 +71,43 @@ docs/
 - **Feature IDs:** PROJ-1, PROJ-2, etc. (sequential)
 - **Commits:** `feat(PROJ-X): description`, `fix(PROJ-X): description`
 - **Single Responsibility:** One feature per folder
-- **Feature branches:** you create a branch `feat/PROJ-X-name` before `/build`; work stays there through build/QA/E2E. `main` always stays deployable.
-- **⚠️ Nichts geht direkt nach `main` — `/deploy` merged NICHT selbst, sondern öffnet einen Pull Request.**
+- **⚠️ Feature-Branch und Pull Request macht der Agent — zu Beginn der Feature, nicht vor `/build`.**
+  Das weicht bewusst von `.claude/rules/general.md` ab, wo steht: *„The user creates the branch before `/build` — skills never create or switch branches on their own."* **Diese Konvention hier gewinnt.** `general.md` ist managed und wird von `create-ai-eng-app update` überschrieben — nach jedem Update gegenprüfen.
+
+  **Ablauf — der Agent führt ihn aus, ohne dass der Nutzer Git kennen muss:**
+
+  1. **Bei `/write-spec`, noch vor dem ersten Commit:** Branch `feat/PROJ-X-name` anlegen und darauf wechseln. In einem Satz sagen, was das heißt — etwa: „Ich arbeite ab jetzt auf einem eigenen Zweig, damit die laufende Version unberührt bleibt."
+  2. **Nach dem ersten Commit:** pushen und einen **Draft-Pull-Request** gegen `main` öffnen (`gh pr create --draft`). Den Link nennen.
+  3. **Jeder weitere Commit wird gepusht** — von `/architecture`, `/tasks`, `/build`, `/qa`, `/e2e-tests`.
+  4. **`/deploy`** setzt den PR auf „ready for review" statt einen neuen zu öffnen, und wartet auf den Merge durch den Menschen.
+
+  **Zwei Gründe, beide praktisch:**
+
+  *Ohne Branch von Anfang an landen drei Commits auf `main`.* `/write-spec`, `/architecture` und `/tasks` committen alle, bevor die Kit-Regel den Branch vorsieht. Diese Commits lassen sich hier nie pushen — Hook und Ruleset lehnen ab. Sie stapeln sich lokal, bis jemand branched. Prüfen mit `git log --oneline origin/main..main`.
+
+  *Ohne frühen PR läuft keine CI.* Lint, Typecheck, Tests und E2E hängen am Pull Request. Öffnet ihn erst `/deploy`, kommt die erste Rückmeldung nach Stunden Arbeit — gebündelt, am Ende, wenn Korrigieren am teuersten ist. Und bis dahin liegt alles nur auf einem Rechner.
+
+  **Wenn `gh` fehlt oder nicht angemeldet ist:** Branch trotzdem anlegen, den Push und den PR in Klartext an den Nutzer übergeben, mit dem fertigen Befehl. Nicht stillschweigend überspringen — sonst fehlt die CI, ohne dass es jemand merkt.
+- **⚠️ Der erste Deploy wartet, bis die App etwas kann.**
+  Nach bestandener QA bieten `/qa` und `/help` nur zwei Wege an: `/e2e-tests` oder `/deploy`. **„Weiter mit dem nächsten Feature" nennen beide nicht** — die Option ist damit praktisch unsichtbar, obwohl `general.md` sagt, Übergaben seien immer nutzerinitiiert.
+
+  **Deshalb nennt der Agent nach jeder QA alle drei Möglichkeiten**, mit einer Empfehlung dazu:
+  - `/e2e-tests` — bei kritischen Journeys
+  - **`/write-spec` für das nächste Feature** — solange die App noch nichts kann, das ein Nutzer benutzen würde
+  - `/deploy` — wenn sie das kann
+
+  **Faustregel für den ersten Deploy:** Auth **plus** die erste echte Fachfunktion. Nicht nach Auth allein.
+
+  **Warum nicht früher:** Der erste Deploy legt ein gehostetes Supabase-Projekt an — mit der Region, die sich **nie mehr ändern lässt** — eine echte Datenbank mit echter Auth und damit eine DSGVO-Fläche. Für ein Login, hinter dem nichts ist, ist das verfrüht; der lokale Docker-Stack deckt die Entwicklung vollständig ab.
+
+  **Warum nicht später:** Der erste Deploy ist die Stelle, an der Infrastrukturprobleme auffallen — fehlende Env-Variablen, Unterschiede zwischen lokalem und Produktions-Build, die Migrations-Promotion. Wer bis zum fertigen MVP wartet, findet sie mit fünf Features gleichzeitig im Gepäck statt mit einem.
+
+- **⚠️ Nichts geht direkt nach `main` — `/deploy` merged NICHT selbst, sondern übergibt an den Pull Request.**
   Das weicht bewusst von der Skill `/deploy` (Schritt 3) und von `.claude/rules/general.md` ab, die beide einen direkten Merge beschreiben. **Diese Konvention hier gewinnt.** Beide Dateien sind managed und werden von `create-ai-eng-app update` überschrieben — nach jedem Update gegenprüfen, ob diese Zeile noch greift.
 
-  Ablauf: `/deploy` führt seine Vorabprüfungen und die DB-Promotion wie beschrieben aus, öffnet dann statt des Merges einen PR gegen `main` und **wartet**. Nach grüner CI merged der Mensch, danach macht `/deploy` mit Verifikation und Bookkeeping weiter.
+  Ablauf: `/deploy` führt seine Vorabprüfungen und die DB-Promotion wie beschrieben aus. Statt zu mergen setzt es den **bereits offenen Draft-PR** (siehe oben) auf „ready for review" — `gh pr ready` — und **wartet**. Nach grüner CI merged der Mensch, danach macht `/deploy` mit Verifikation und Bookkeeping weiter.
+
+  Existiert wider Erwarten kein PR, legt `/deploy` einen an, statt zu mergen.
 
   **Grund:** `.github/workflows/e2e.yml` triggert ausschließlich auf `pull_request`. Es wartet auf die Vercel-Preview und testet gegen diese — also gegen ein echtes Deployment, bevor es live geht. Ohne PR läuft dieser Workflow **nie**, ohne Fehlermeldung und ohne roten Haken. Ein direkter Merge würde die einzige Stelle entfernen, an der eine Regression vor Produktion auffällt. (`ci.yml` läuft auf PR *und* Push, ist also nicht betroffen.)
 
