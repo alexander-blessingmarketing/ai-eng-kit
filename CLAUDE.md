@@ -88,6 +88,21 @@ docs/
   *Ohne frühen PR läuft keine CI.* Lint, Typecheck, Tests und E2E hängen am Pull Request. Öffnet ihn erst `/deploy`, kommt die erste Rückmeldung nach Stunden Arbeit — gebündelt, am Ende, wenn Korrigieren am teuersten ist. Und bis dahin liegt alles nur auf einem Rechner.
 
   **Wenn `gh` fehlt oder nicht angemeldet ist:** Branch trotzdem anlegen, den Push und den PR in Klartext an den Nutzer übergeben, mit dem fertigen Befehl. Nicht stillschweigend überspringen — sonst fehlt die CI, ohne dass es jemand merkt.
+- **⚠️ „Fertig" heißt: `lint`, `typecheck`, `build` und `test` sind grün — alle vier.**
+  `/build` nennt als Abnahmekriterium nur *„`npm run build` and `npm test` pass"*, `/qa` prüft `npm test`. **Lint und Typecheck kommen in beiden nicht vor.** `.ai-eng-kit` kennt `commands.lint`, benutzt wird es aber nur von `/deploy` — also ganz am Ende. `typecheck` steht dort gar nicht.
+
+  Praktische Folge, real passiert: Vier Features lang lief ein `react-hooks/set-state-in-effect`-Fehler mit. `/qa` meldete „Approved, Production Ready", die CI war rot. Aufgefallen ist es erst beim ersten Push — nach Stunden Arbeit.
+
+  **Deshalb führt der Agent am Ende von `/build` und `/qa` alle vier aus:**
+
+  ```bash
+  npm run lint && npm run typecheck && npm run build && npm test
+  ```
+
+  Rot heißt: nicht fertig. Das gilt auch für Lint — ein Linter-Fehler ist kein Schönheitsfehler, sondern die CI, die den Merge blockiert.
+
+  **Kein `eslint-disable`, um einen Fehler wegzubekommen.** Die Regel hat einen Grund; wer sie abschaltet, verschiebt das Problem in die Laufzeit. Ausnahmen gehören begründet und mit `--` kommentiert, wie in `src/components/cookie-consent.tsx`.
+
 - **⚠️ Der erste Deploy wartet, bis die App etwas kann.**
   Nach bestandener QA bieten `/qa` und `/help` nur zwei Wege an: `/e2e-tests` oder `/deploy`. **„Weiter mit dem nächsten Feature" nennen beide nicht** — die Option ist damit praktisch unsichtbar, obwohl `general.md` sagt, Übergaben seien immer nutzerinitiiert.
 
