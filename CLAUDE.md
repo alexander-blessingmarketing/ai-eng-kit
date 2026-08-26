@@ -103,19 +103,24 @@ docs/
 
   **Kein `eslint-disable`, um einen Fehler wegzubekommen.** Die Regel hat einen Grund; wer sie abschaltet, verschiebt das Problem in die Laufzeit. Ausnahmen gehören begründet und mit `--` kommentiert, wie in `src/components/cookie-consent.tsx`.
 
-- **⚠️ Der erste Deploy wartet, bis die App etwas kann.**
+- **⚠️ Wann deployed wird, ist eine Projektentscheidung — keine Vorgabe des Ablaufs.**
   Nach bestandener QA bieten `/qa` und `/help` nur zwei Wege an: `/e2e-tests` oder `/deploy`. **„Weiter mit dem nächsten Feature" nennen beide nicht** — die Option ist damit praktisch unsichtbar, obwohl `general.md` sagt, Übergaben seien immer nutzerinitiiert.
 
-  **Deshalb nennt der Agent nach jeder QA alle drei Möglichkeiten**, mit einer Empfehlung dazu:
+  **Deshalb nennt der Agent nach jeder QA alle drei Möglichkeiten**, ohne zu drängen:
   - `/e2e-tests` — bei kritischen Journeys
-  - **`/write-spec` für das nächste Feature** — solange die App noch nichts kann, das ein Nutzer benutzen würde
-  - `/deploy` — wenn sie das kann
+  - `/write-spec` — nächstes Feature
+  - `/deploy` — ausliefern
 
-  **Faustregel für den ersten Deploy:** Auth **plus** die erste echte Fachfunktion. Nicht nach Auth allein.
+  **Welcher davon der richtige ist, steht in `docs/PRD.md` → Constraints**, als eine Zeile, analog zur `Environment strategy`:
 
-  **Warum nicht früher:** Der erste Deploy legt ein gehostetes Supabase-Projekt an — mit der Region, die sich **nie mehr ändern lässt** — eine echte Datenbank mit echter Auth und damit eine DSGVO-Fläche. Für ein Login, hinter dem nichts ist, ist das verfrüht; der lokale Docker-Stack deckt die Entwicklung vollständig ab.
+  - `Deploy strategy: per-feature` — jedes fertige Feature geht live. Infrastrukturprobleme fallen früh und einzeln auf.
+  - `Deploy strategy: milestone` — erst wenn ein zusammenhängender Stand steht. Weniger Deploy-Zyklen, dafür schlagen Infrastrukturprobleme gebündelt auf.
 
-  **Warum nicht später:** Der erste Deploy ist die Stelle, an der Infrastrukturprobleme auffallen — fehlende Env-Variablen, Unterschiede zwischen lokalem und Produktions-Build, die Migrations-Promotion. Wer bis zum fertigen MVP wartet, findet sie mit fünf Features gleichzeitig im Gepäck statt mit einem.
+  **`/init` fragt das ab**, sobald ein Backend gewählt wurde. Fehlt die Zeile in einem älteren Projekt: einmal nachfragen und eintragen, nicht raten.
+
+  **Was der Agent beisteuert, wenn er `/deploy` nennt:** Beim **ersten** Deploy einmal darauf hinweisen, dass dabei ein gehostetes Supabase-Projekt entsteht — mit der Region, die sich **nie mehr ändern lässt** — plus echter Datenbank, echter Auth und damit einer DSGVO-Fläche. Danach nicht mehr; einmal gesagt reicht.
+
+  `/deploy` kommt mit beiden Strategien zurecht: Es promotet alle ausstehenden Migrationen in einem Rutsch und in der richtigen Reihenfolge, mit `db push --dry-run` und Klartext-Zusammenfassung vorher. Fünf Migrationen auf einmal sind kein Sonderfall.
 
 - **⚠️ Nichts geht direkt nach `main` — `/deploy` merged NICHT selbst, sondern übergibt an den Pull Request.**
   Das weicht bewusst von der Skill `/deploy` (Schritt 3) und von `.claude/rules/general.md` ab, die beide einen direkten Merge beschreiben. **Diese Konvention hier gewinnt.** Beide Dateien sind managed und werden von `create-ai-eng-app update` überschrieben — nach jedem Update gegenprüfen, ob diese Zeile noch greift.
