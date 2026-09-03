@@ -103,6 +103,24 @@ docs/
 
   **Kein `eslint-disable`, um einen Fehler wegzubekommen.** Die Regel hat einen Grund; wer sie abschaltet, verschiebt das Problem in die Laufzeit. Ausnahmen gehören begründet und mit `--` kommentiert, wie in `src/components/cookie-consent.tsx`.
 
+- **⚠️ Gefragt wird nur, was trägt — in JEDER Skill, nicht nur in `/build`.**
+  `/build` hat dafür einen Abschnitt „Asking vs. Assuming" mit dem entscheidenden Satz: *„ritual questions just train the user to rubber-stamp."* **`/write-spec` und `/architecture` haben ihn nicht.** Dort steht stattdessen *„Interview the user relentlessly"* und *„No fixed question limit"* — ohne Gegengewicht.
+
+  Real passiert: drei Fragen hintereinander (Migrations-Zeitpunkt, Umfang der Config-Validierung, Endpoint-Name), zu jeder hatte der Agent bereits eine begründete Empfehlung. Dreimal kam „jop" zurück. Das ist kein Mitentscheiden.
+
+  **Der Filter aus `/build` gilt überall:**
+
+  **Fragen**, wenn eine Annahme tragend ist **und** die Spec sie nicht klärt. Tragend heißt: Sicherheit, Datenmodell, Datenverlust, oder schwer umkehrbar — wem Daten gehören, ob ein Löschen kaskadiert, wie gleichzeitige Änderungen ausgehen, eine Produktentscheidung ohne Vorlage.
+
+  **Nicht fragen**, wenn Spec, PRD oder `docs/design-system.md` es beantworten, oder wenn es eine gängige Best Practice mit klarer Begründung gibt. Dann **entscheiden, im Vollzug benennen, weitermachen.**
+
+  So sieht das aus — nicht als Frage, sondern als Feststellung:
+  > „Migrationen laufen als eigener Deploy-Schritt, nicht beim Container-Start — bei mehreren Replikas gäbe es sonst Wettläufe. Sag Bescheid, falls du es anders willst."
+
+  Der Unterschied zur Frage: Es blockiert nicht. Wer widerspricht, wird gehört; wer schweigt, verliert keine Zeit.
+
+  **Getroffene Annahmen gehören gesammelt ans Ende** — `/build` macht das schon („Surface Your Assumptions"), mit Kennzeichnung, wo du unsicher warst. Das ist der Ort für Rückfragen, nicht der Fluss.
+
 - **⚠️ Wann deployed wird, ist eine Projektentscheidung — keine Vorgabe des Ablaufs.**
   Nach bestandener QA bieten `/qa` und `/help` nur zwei Wege an: `/e2e-tests` oder `/deploy`. **„Weiter mit dem nächsten Feature" nennen beide nicht** — die Option ist damit praktisch unsichtbar, obwohl `general.md` sagt, Übergaben seien immer nutzerinitiiert.
 
