@@ -64,7 +64,9 @@
       "Write(**/.env.*.local)",
       "Write(**/.env.development)",
       "Write(**/.env.production)",
-      "Write(**/.env.test)"
+      "Write(**/.env.test)",
+      "Bash(git branch -D:*)",
+      "Bash(git push --delete:*)"
     ],
     "ask": [
       "Bash(rm -rf:*)",
@@ -72,7 +74,6 @@
       "Bash(rm -r:*)",
       "Bash(rm -R:*)",
       "Bash(git clean:*)",
-      "Bash(git push:*)",
       "Bash(supabase db push:*)",
       "Bash(npx supabase db push:*)",
       "Bash(supabase migration repair:*)",
@@ -107,7 +108,27 @@
       "Edit(**/.env.local.example)",
       "Edit(**/.env.example)",
       "Write(**/.env.local.example)",
-      "Write(**/.env.example)"
+      "Write(**/.env.example)",
+      "Bash(git add:*)",
+      "Bash(git switch:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm test:*)",
+      "Bash(npm ci:*)"
     ]
   }
 }
