@@ -121,6 +121,14 @@ docs/
 
   **Getroffene Annahmen gehören gesammelt ans Ende** — `/build` macht das schon („Surface Your Assumptions"), mit Kennzeichnung, wo du unsicher warst. Das ist der Ort für Rückfragen, nicht der Fluss.
 
+  **Dasselbe gilt für Freigaben: nicht zweimal dieselbe.** `/tasks` holt die Zustimmung zum Plan bereits in Schritt 5 ein — *„Do not write the file or advance status until the user approves the plan."* Danach beim Übergang zu `/build` erneut zu fragen, fragt dieselbe Sache ein zweites Mal. Alles, was `/build` erzeugt, liegt auf einem Feature-Branch und geht durch einen PR; nichts davon ist schwer umkehrbar.
+
+  **Eine Freigabe verdient, was nicht zurückkommt:** `supabase db push` gegen Produktion, der erste Deploy, entstehende Kosten. Nicht Code auf einem Branch.
+
+  **Und dasselbe für Benachrichtigungen.** Wenn ein Kanal (Slack o. ä.) bei jedem Phasenübergang meldet, lässt sich „du wirst gebraucht" nicht mehr von „läuft noch" unterscheiden — nach dem dritten Mal liest es niemand. **Gemeldet wird, was Handlung braucht:** ein echter Blocker, ein Fehlschlag, das Ende des Laufs. Fortschritt gehört in den Chat, nicht in eine Benachrichtigung.
+
+  Das ist dasselbe Prinzip wie beim `postinstall`: Schweigen muss etwas bedeuten dürfen.
+
 - **⚠️ Wann deployed wird, ist eine Projektentscheidung — keine Vorgabe des Ablaufs.**
   Nach bestandener QA bieten `/qa` und `/help` nur zwei Wege an: `/e2e-tests` oder `/deploy`. **„Weiter mit dem nächsten Feature" nennen beide nicht** — die Option ist damit praktisch unsichtbar, obwohl `general.md` sagt, Übergaben seien immer nutzerinitiiert.
 
